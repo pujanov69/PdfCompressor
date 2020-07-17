@@ -1,6 +1,9 @@
 package com.pujanov.pdfCompression;
 
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,6 +24,7 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.PDFBox;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -36,6 +40,7 @@ public class PdfCompressionApplication {
 	private static final String OUTPUT_DIR = "/tmp/images/";
 	private static final String COMPRESSED_OUTPUT_DIR = "/tmp/compressed-images/";
 	
+	@Autowired
 	public static void main(String[] args) throws InterruptedException, IOException, DocumentException {
 		SpringApplication.run(PdfCompressionApplication.class, args);
 		
@@ -44,7 +49,7 @@ public class PdfCompressionApplication {
 	            for (int page = 0; page < document.getNumberOfPages(); ++page)
 	            {
 	                BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
-	                String fileName = OUTPUT_DIR + "image-" + page + ".png";
+	                String fileName = OUTPUT_DIR + "image-" + page + ".jpg";
 	                ImageIOUtil.writeImage(bim, fileName, 300);
 	            }
 	            document.close();
@@ -72,11 +77,21 @@ public class PdfCompressionApplication {
 			 //for compression
 			 
 			 BufferedImage image = ImageIO.read(child);
-			 File compressedImageFile = new File(COMPRESSED_OUTPUT_DIR +"compressed_image"+ n +".png");
 			 
+			 
+			 //further compression using Scalr class
+			 Scalr scalr = new Scalr();
+		
+			 BufferedImage scalrImage = scalr.resize(image, 400); 
+			 
+			 //Scalr class compression ends
+			 
+			 //File compressedImageFile = new File(COMPRESSED_OUTPUT_DIR +"compressed_image"+ n +".jpg");
+			 File compressedImageFile = new File(COMPRESSED_OUTPUT_DIR + child.getName());
+			
 			 OutputStream os = new FileOutputStream(compressedImageFile);
 			 
-			 Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("png");
+			 Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
 			    ImageWriter writer = (ImageWriter) writers.next();
 			    
 			    ImageOutputStream ios = ImageIO.createImageOutputStream(os);
@@ -85,8 +100,8 @@ public class PdfCompressionApplication {
 			    ImageWriteParam param = writer.getDefaultWriteParam();
 			    
 			    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-			    param.setCompressionQuality(0.005f);  // Change the quality value you prefer
-			    writer.write(null, new IIOImage(image, null, null), param);
+			    param.setCompressionQuality(0.01f);  // Change the quality value you prefer
+				writer.write(null, new IIOImage(image, null, null), param);
 
 			    os.close();
 			    ios.close();
@@ -106,9 +121,11 @@ public class PdfCompressionApplication {
 		 
 		 File dir1 = new File(COMPRESSED_OUTPUT_DIR);
 		 File[] directoryListing1 = dir1.listFiles();
+		 
+		 int fileCount = directoryListing1.length;
 		 int m=0;
 		 
-		 Document document = new Document(PageSize.A4, 20, 20, 20, 20);
+		 Document document = new Document();
 		 String output = "C://converted/converted.pdf";
 		 FileOutputStream fos = new FileOutputStream(output);
 	      PdfWriter writer = PdfWriter.getInstance(document, fos);
@@ -116,9 +133,9 @@ public class PdfCompressionApplication {
 	      document.open();
 		 
 		 if(directoryListing != null) {
-		 for(File child: directoryListing ) {
+		 for(int i =0; i<fileCount; i++ ) {
 		
-		 String input = COMPRESSED_OUTPUT_DIR + "compressed_image"+ m +".png"; // .gif and .jpg are ok too!
+		 String input = COMPRESSED_OUTPUT_DIR + "image-"+ i +".jpg"; // .gif and .jpg are ok too!
 		   
 		 try {
 			 
@@ -137,7 +154,7 @@ public class PdfCompressionApplication {
 			 //for resizing ends
 			 
 		      document.add(image);
-		      System.out.println("ImageAdde---->" + input);
+		      System.out.println("ImageAdded---->" + input);
 		      
 		    }
 		    catch (Exception e) {
