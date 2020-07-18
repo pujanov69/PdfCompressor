@@ -70,7 +70,7 @@ public class PdfCompressionApplication {
             PDFRenderer pdfRenderer = new PDFRenderer(document);
             for (int page = 0; page < document.getNumberOfPages(); ++page)
             {
-                BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
+                BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 100, ImageType.RGB);
                 String fileName = OUTPUT_DIR + "image-" + page + ".jpg";
                 ImageIOUtil.writeImage(bim, fileName, 300);
             }
@@ -80,7 +80,6 @@ public class PdfCompressionApplication {
         } 
 	 
 	 
-	 //TimeUnit.SECONDS.sleep(40);
 	 
 	 //List<File> images = new ArrayList<File>();
 	 
@@ -104,7 +103,7 @@ public class PdfCompressionApplication {
 		 //further compression using Scalr class
 		 Scalr scalr = new Scalr();
 	
-		 BufferedImage scalrImage = scalr.resize(image, 2000); 
+		 //BufferedImage scalrImage = scalr.resize(image, 2000); 
 		 
 		 //Scalr class compression ends
 		 
@@ -123,7 +122,8 @@ public class PdfCompressionApplication {
 		    
 		    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
 		    param.setCompressionQuality(0.0f);  // Change the quality value you prefer
-			writer.write(null, new IIOImage(scalrImage, null, null), param);
+			//param.setCom
+		    writer.write(null, new IIOImage(image, null, null), param);
 
 		    os.close();
 		    ios.close();
@@ -147,12 +147,12 @@ public class PdfCompressionApplication {
 	 int fileCount = directoryListing1.length;
 	 int m=0;
 	 
-	 Document document = new Document();
+	 Document outDocument = new Document();
 	 String output = "C://converted/converted.pdf";
 	 FileOutputStream fos = new FileOutputStream(output);
-      PdfWriter writer = PdfWriter.getInstance(document, fos);
+      PdfWriter writer = PdfWriter.getInstance(outDocument, fos);
       writer.open();
-      document.open();
+      outDocument.open();
 	 
 	 if(directoryListing != null) {
 	 for(int i =0; i<fileCount; i++ ) {
@@ -168,14 +168,14 @@ public class PdfCompressionApplication {
 		 //whatever
 		 Image image = Image.getInstance(input);
 
-		 float scaler = ((document.getPageSize().getWidth() - document.leftMargin()
-		                - document.rightMargin() - indentation) / image.getWidth()) * 100;
+		 float scaler = ((outDocument.getPageSize().getWidth() - outDocument.leftMargin()
+		                - outDocument.rightMargin() - indentation) / image.getWidth()) * 100;
 
 		 image.scalePercent(scaler);
 	     
 		 //for resizing ends
 		 
-	      document.add(image);
+	      outDocument.add(image);
 	      System.out.println("ImageAdded---->" + input);
 	      
 	    }
@@ -185,7 +185,7 @@ public class PdfCompressionApplication {
 	 
 	 m++;
 	 }
-	 document.close();
+	 outDocument.close();
       writer.close();
 	 }
 	 
